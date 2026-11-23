@@ -1,0 +1,31 @@
+name: Build tModLoader Mod
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip Mod
+        run: |
+          mkdir -p ModExtracted
+          unzip -q SpaceMod-repo.zip -d ModExtracted
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Download tModLoader Server
+        run: |
+          wget -q https://github.com
+          unzip -q tModLoader.zip -d tModLoader
+      - name: Build Mod
+        run: |
+          MOD_DIR=$(find ModExtracted -name "build.txt" -exec dirname {} \; | head -n 1)
+          mkdir -p ~/.local/share/Terraria/tModLoader/ModSources/SpaceMod
+          cp -r "$MOD_DIR"/* ~/.local/share/Terraria/tModLoader/ModSources/SpaceMod/
+          dotnet tModLoader/tModLoader.dll -build SpaceMod -eac SpaceMod.tmod
+      - name: Upload .tmod
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpaceMod-Compilado
+          path: ~/.local/share/Terraria/tModLoader/Mods/SpaceMod.tmod
